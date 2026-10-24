@@ -11,9 +11,10 @@ jobs:
       uses: actions/checkout@v4
 
     - name: "Setup Java"
-      uses: actions/setup-java@v5
+      uses: actions/setup-java@v4
       with:
         java-version: 17
+        distribution: 'temurin'
 
     - name: "Initialize Gradle dependencies cache"
       uses: actions/cache@v4
