@@ -20,8 +20,22 @@ jobs:
           java-version: '17'
           distribution: 'temurin'
 
+      - name: Initialize Gradle dependencies cache
+        uses: actions/cache@v4
+        with:
+          path: ~/.gradle/caches
+          key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/build.gradle') }}
+
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
 
       - name: Run tests with Gradle
         run: ./gradlew test jacocoTestReport
+
+      - name: Upload build reports
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-reports
+          path: build/reports/
+          if-no-files-found: ignore
