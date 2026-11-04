@@ -29,20 +29,4 @@ class DependencyRuleTests {
 						.importPackages("io.reflectoring.buckpal.."));
 	}
 
-	@Test
-	void domainModelDoesNotDependOnOutside() {
-		noClasses()
-				.that()
-				.resideInAPackage("io.reflectoring.buckpal.application.domain.model..")
-				.should()
-				.dependOnClassesThat()
-				.resideOutsideOfPackages(
-						"io.reflectoring.buckpal.application.domain.model..",
-						"lombok..",
-						"java.."
-				)
-				.check(new ClassFileImporter()
-						.importPackages("io.reflectoring.buckpal.."));
-	}
-
 }

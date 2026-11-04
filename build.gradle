@@ -16,8 +16,9 @@ repositories {
     mavenCentral()
 }
 
-// Versión de Selenium para pruebas de caja negra (sobrescribe la que trae Spring Boot 3.1).
-ext['selenium.version'] = '4.25.0'
+// Versión de Selenium para pruebas de caja negra (sobrescribe la que trae Spring Boot 3.1
+// para que todos los módulos de Selenium usen la misma versión que selenium-java).
+ext['selenium.version'] = '4.52.0'
 
 compileJava {
     sourceCompatibility = 17
@@ -38,8 +39,8 @@ dependencies {
     testImplementation 'org.mockito:mockito-junit-jupiter:5.3.1'
     testImplementation 'com.tngtech.archunit:archunit:1.0.1'
     testImplementation 'com.h2database:h2'
-    testImplementation 'org.seleniumhq.selenium:selenium-java'
-
+    testImplementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
+    testImplementation 'org.seleniumhq.selenium:selenium-java:4.52.0'
     runtimeOnly 'com.h2database:h2'
 
 }
