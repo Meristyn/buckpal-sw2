@@ -11,37 +11,16 @@ jobs:
     runs-on: ubuntu-latest
 
     steps:
-<<<<<<< HEAD
-<<<<<<< HEAD
-      - name: "Checkout sources"
-        uses: actions/checkout@v4
-
-      - name: "Setup Java"
-        uses: actions/setup-java@v4
-=======
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
->>>>>>> 61a8af8cedc78c05fa375f6ce3bd625fe34a7a2d
-=======
-      - name: Checkout repository
-        uses: actions/checkout@v4
-
-      - name: Set up JDK 17
-        uses: actions/setup-java@v5
->>>>>>> development
         with:
           java-version: '17'
           distribution: 'temurin'
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-      - name: "Initialize Gradle dependencies cache"
-=======
       - name: Initialize Gradle dependencies cache
->>>>>>> development
         uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
@@ -60,13 +39,3 @@ jobs:
           name: test-reports
           path: build/reports/
           if-no-files-found: ignore
-<<<<<<< HEAD
-=======
-      - name: Grant execute permission for gradlew
-        run: chmod +x gradlew
-
-      - name: Run tests with Gradle
-        run: ./gradlew test jacocoTestReport
->>>>>>> 61a8af8cedc78c05fa375f6ce3bd625fe34a7a2d
-=======
->>>>>>> development
