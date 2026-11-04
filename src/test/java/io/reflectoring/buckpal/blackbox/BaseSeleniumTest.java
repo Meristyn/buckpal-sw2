@@ -7,11 +7,15 @@ import org.openqa.selenium.WebDriver;
 import org.openqa.selenium.chrome.ChromeDriver;
 import org.openqa.selenium.chrome.ChromeOptions;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.web.server.LocalServerPort;
 
 @SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
 public class BaseSeleniumTest {
     protected WebDriver driver;
     protected String baseUrl = "http://localhost:8080?profile=demo";
+    @LocalServerPort
+    protected int port;
+
 
     @BeforeEach
     public void setUp() {
