@@ -74,6 +74,9 @@ class AccountWebController {
 			Long source = parseLong(sourceAccountId, "Cuenta de origen");
 			Long target = parseLong(targetAccountId, "Cuenta de destino");
 			Long value = parseLong(amount, "Monto");
+			if (value <= 0) {
+				throw new InvalidInputException("El monto debe ser mayor que cero.");
+			}
 
 			SendMoneyCommand command = new SendMoneyCommand(
 					new AccountId(source),
@@ -86,16 +89,37 @@ class AccountWebController {
 			} else {
 				error(model, "Saldo insuficiente en la cuenta " + source + ".");
 			}
+			showBalance(model, source);
 		} catch (InvalidInputException e) {
 			error(model, e.getMessage());
+			showBalanceIfSourceIsKnown(model, sourceAccountId);
 		} catch (ConstraintViolationException e) {
 			error(model, "El monto debe ser mayor que cero.");
+			showBalanceIfSourceIsKnown(model, sourceAccountId);
 		} catch (ThresholdExceededException e) {
 			error(model, "El monto excede el límite máximo permitido por transferencia.");
+			showBalanceIfSourceIsKnown(model, sourceAccountId);
 		} catch (EntityNotFoundException e) {
 			error(model, "Una de las cuentas no existe.");
 		}
 		return VIEW;
+	}
+
+	private void showBalance(Model model, Long sourceAccountId) {
+		Money balance = getAccountBalanceUseCase.getAccountBalance(
+				new GetAccountBalanceQuery(new AccountId(sourceAccountId)));
+		model.addAttribute("balanceResult", balance.getAmount().toString());
+	}
+
+	private void showBalanceIfSourceIsKnown(Model model, String sourceAccountId) {
+		if (sourceAccountId == null || sourceAccountId.isBlank()) {
+			return;
+		}
+		try {
+			showBalance(model, Long.valueOf(sourceAccountId.trim()));
+		} catch (NumberFormatException ignored) {
+			// No hay saldo que mostrar si la cuenta de origen no es numérica.
+		}
 	}
 
 	private static Long parseLong(String raw, String fieldName) {
