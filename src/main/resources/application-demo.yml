@@ -1,0 +1,9 @@
+# Perfil "demo": carga cuentas de ejemplo para usar la interfaz web.
+# Ejecutar con:  gradlew bootRun --args="--spring.profiles.active=demo"
+spring:
+  jpa:
+    defer-datasource-initialization: true
+  sql:
+    init:
+      mode: always
+      data-locations: classpath:demo-data.sql
