@@ -73,7 +73,7 @@ public class Account {
 	 */
 	public boolean withdraw(Money money, AccountId targetAccountId) {
 
-		if (!mayWithdraw(money)) {
+		if (!money.isPositive() || !mayWithdraw(money)) {
 			return false;
 		}
 
@@ -88,7 +88,7 @@ public class Account {
 	}
 
 	private boolean mayWithdraw(Money money) {
-		return Money.add(
+		return money.isPositive() && Money.add(
 				this.calculateBalance(),
 				money.negate())
 				.isPositiveOrZero();
@@ -100,6 +100,9 @@ public class Account {
 	 * @return true if the deposit was successful, false if not.
 	 */
 	public boolean deposit(Money money, AccountId sourceAccountId) {
+		if (!money.isPositive()) {
+			return false;
+		}
 		Activity deposit = new Activity(
 				this.id,
 				sourceAccountId,

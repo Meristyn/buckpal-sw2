@@ -12,11 +12,15 @@ jobs:
 
     steps:
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 6ea5e70e80a2daedc7bfcc872c25acd1aecca78e
       - name: Checkout repository
         uses: actions/checkout@v4
 
       - name: Set up JDK 17
         uses: actions/setup-java@v5
+<<<<<<< HEAD
 =======
       - name: "Checkout sources"
         uses: actions/checkout@v4
@@ -24,10 +28,13 @@ jobs:
       - name: "Setup Java"
         uses: actions/setup-java@v4
 >>>>>>> 6e26151d6a4d20c36f888bb744cc46bcfe165337
+=======
+>>>>>>> 6ea5e70e80a2daedc7bfcc872c25acd1aecca78e
         with:
           java-version: '17'
           distribution: 'temurin'
 
+<<<<<<< HEAD
 <<<<<<< HEAD
       - name: Grant execute permission for gradlew
         run: chmod +x gradlew
@@ -36,19 +43,36 @@ jobs:
         run: ./gradlew test jacocoTestReport
 =======
       - name: "Initialize Gradle dependencies cache"
+=======
+      - name: Initialize Gradle dependencies cache
+>>>>>>> 6ea5e70e80a2daedc7bfcc872c25acd1aecca78e
         uses: actions/cache@v4
         with:
           path: ~/.gradle/caches
           key: ${{ runner.os }}-gradle-caches-${{ hashFiles('**/build.gradle') }}
 
+<<<<<<< HEAD
       - name: "Run Gradle build"
         run: chmod 755 gradlew && ./gradlew build
 
       - name: "Upload build reports"
+=======
+      - name: Grant execute permission for gradlew
+        run: chmod +x gradlew
+
+      - name: Run tests with Gradle
+        run: ./gradlew test jacocoTestReport
+
+      - name: Upload build reports
+>>>>>>> 6ea5e70e80a2daedc7bfcc872c25acd1aecca78e
         if: always()
         uses: actions/upload-artifact@v4
         with:
           name: test-reports
           path: build/reports/
+<<<<<<< HEAD
           if-no-files-found: ignore
 >>>>>>> 6e26151d6a4d20c36f888bb744cc46bcfe165337
+=======
+          if-no-files-found: ignore
+>>>>>>> 6ea5e70e80a2daedc7bfcc872c25acd1aecca78e
