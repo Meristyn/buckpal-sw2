@@ -7,10 +7,10 @@ import io.reflectoring.buckpal.application.port.out.LoadAccountPort;
 import io.reflectoring.buckpal.application.port.out.UpdateAccountStatePort;
 import io.reflectoring.buckpal.common.UseCase;
 import io.reflectoring.buckpal.application.domain.model.Account;
-import io.reflectoring.buckpal.application.domain.model.Account.AccountId;
+import io.reflectoring.buckpal.application.domain.model.Account.AccountId;  
 import lombok.RequiredArgsConstructor;
 
-import jakarta.transaction.Transactional;
+import jakarta.transaction.Transactional; 
 import java.time.LocalDateTime;
 
 @RequiredArgsConstructor
@@ -30,48 +30,53 @@ public class SendMoneyService implements SendMoneyUseCase {
 
 		LocalDateTime baselineDate = LocalDateTime.now().minusDays(10);
 
-		Account sourceAccount = loadAccountPort.loadAccount(
-				command.sourceAccountId(),
-				baselineDate);
+		// 1. Cargar cuentas
+		Account sourceAccount = loadAccountPort.loadAccount(command.sourceAccountId(), baselineDate);
+		Account targetAccount = loadAccountPort.loadAccount(command.targetAccountId(), baselineDate);
 
-		Account targetAccount = loadAccountPort.loadAccount(
-				command.targetAccountId(),
-				baselineDate);
+		AccountId sourceAccountId = getAccountId(sourceAccount, "source");
+		AccountId targetAccountId = getAccountId(targetAccount, "target");
 
-		AccountId sourceAccountId = sourceAccount.getId()
-				.orElseThrow(() -> new IllegalStateException("expected source account ID not to be empty"));
-		AccountId targetAccountId = targetAccount.getId()
-				.orElseThrow(() -> new IllegalStateException("expected target account ID not to be empty"));
-
+		// 2. Bloqueo y retiro de la cuenta origen
 		accountLock.lockAccount(sourceAccountId);
 		if (!sourceAccount.withdraw(command.money(), targetAccountId)) {
 			accountLock.releaseAccount(sourceAccountId);
 			return false;
 		}
 
+		// 3. Bloqueo y depósito en la cuenta destino
 		accountLock.lockAccount(targetAccountId);
 		if (!targetAccount.deposit(command.money(), sourceAccountId)) {
-			accountLock.releaseAccount(sourceAccountId);
-			accountLock.releaseAccount(targetAccountId);
+			releaseAccounts(sourceAccountId, targetAccountId);
 			return false;
 		}
 
-		updateAccountStatePort.updateActivities(sourceAccount);
-		updateAccountStatePort.updateActivities(targetAccount);
-
-		accountLock.releaseAccount(sourceAccountId);
-		accountLock.releaseAccount(targetAccountId);
+		// 4. Actualización de estado y liberación final
+		updateAndRelease(sourceAccount, targetAccount, sourceAccountId, targetAccountId);
 		return true;
 	}
 
+	// --- Métodos extraídos (Extract Method) ---
+
 	private void checkThreshold(SendMoneyCommand command) {
-		if(command.money().isGreaterThan(moneyTransferProperties.getMaximumTransferThreshold())){
+		if (command.money().isGreaterThan(moneyTransferProperties.getMaximumTransferThreshold())) {
 			throw new ThresholdExceededException(moneyTransferProperties.getMaximumTransferThreshold(), command.money());
 		}
 	}
 
+	private AccountId getAccountId(Account account, String accountType) {
+		return account.getId()
+				.orElseThrow(() -> new IllegalStateException("expected " + accountType + " account ID not to be empty"));
+	}
+
+	private void releaseAccounts(AccountId sourceAccountId, AccountId targetAccountId) {
+		accountLock.releaseAccount(sourceAccountId);
+		accountLock.releaseAccount(targetAccountId);
+	}
+
+	private void updateAndRelease(Account sourceAccount, Account targetAccount, AccountId sourceAccountId, AccountId targetAccountId) {
+		updateAccountStatePort.updateActivities(sourceAccount);
+		updateAccountStatePort.updateActivities(targetAccount);
+		releaseAccounts(sourceAccountId, targetAccountId);
+	}
 }
-
-
-
-
