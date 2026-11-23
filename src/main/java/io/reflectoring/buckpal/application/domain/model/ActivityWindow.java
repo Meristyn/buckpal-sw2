@@ -44,17 +44,24 @@ public class ActivityWindow {
 	 * Calculates the balance by summing up the values of all activities within this window.
 	 */
 	public Money calculateBalance(Account.AccountId accountId) {
-		Money depositBalance = activities.stream()
-				.filter(a -> a.getTargetAccountId().equals(accountId))
-				.map(Activity::getMoney)
-				.reduce(Money.ZERO, Money::add);
-
-		Money withdrawalBalance = activities.stream()
-				.filter(a -> a.getSourceAccountId().equals(accountId))
-				.map(Activity::getMoney)
-				.reduce(Money.ZERO, Money::add);
+		Money depositBalance = calculateBalanceFor(accountId, true);
+		Money withdrawalBalance = calculateBalanceFor(accountId, false);
 
 		return Money.add(depositBalance, withdrawalBalance.negate());
+	}
+
+	/**
+	 * Extrae la lógica duplicada del cálculo de saldo (Extract Method).
+	 * Si isDeposit es true, suma los depósitos (cuenta destino);
+	 * si es false, suma los retiros (cuenta origen).
+	 */
+	private Money calculateBalanceFor(Account.AccountId accountId, boolean isDeposit) {
+		return activities.stream()
+				.filter(activity -> isDeposit
+						? activity.getTargetAccountId().equals(accountId)
+						: activity.getSourceAccountId().equals(accountId))
+				.map(Activity::getMoney)
+				.reduce(Money.ZERO, Money::add);
 	}
 
 	public ActivityWindow(@NonNull List<Activity> activities) {
