@@ -14,6 +14,7 @@ import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
 
 @WebMvcTest(SendMoneyController.class)
@@ -32,7 +33,15 @@ class SendMoneyControllerTest {
                 new AccountId(41L), new AccountId(42L), Money.of(500L))))).thenReturn(true);
 
         // Act & Assert
-        mockMvc.perform(post("/accounts/send/41/42/500"))
+        mockMvc.perform(post("/accounts/send")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .content("""
+                                {
+                                  "sourceAccountId": 41,
+                                  "targetAccountId": 42,
+                                  "amount": 500
+                                }
+                                """))
                 .andExpect(status().isOk());
 
         // Assert

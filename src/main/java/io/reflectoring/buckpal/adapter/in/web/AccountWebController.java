@@ -17,14 +17,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 
-/**
- * Adaptador web de entrada (interfaz HTML con Thymeleaf).
- *
- * Solo traduce lo que el usuario escribe en los formularios a llamadas a los
- * casos de uso existentes (puertos de entrada) y muestra el resultado.
- * No contiene lógica de negocio: existe para poder aplicar pruebas de caja
- * negra con Selenium sobre la aplicación.
- */
 @WebAdapter
 @Controller
 @RequiredArgsConstructor
@@ -55,7 +47,8 @@ class AccountWebController {
 		} catch (InvalidInputException e) {
 			error(model, e.getMessage());
 		} catch (EntityNotFoundException e) {
-			error(model, "La cuenta " + accountId.trim() + " no existe.");
+			String safeId = accountId != null ? accountId.trim() : "";
+			error(model, "La cuenta " + safeId + " no existe.");
 		}
 		return VIEW;
 	}
@@ -73,10 +66,7 @@ class AccountWebController {
 		try {
 			Long source = parseLong(sourceAccountId, "Cuenta de origen");
 			Long target = parseLong(targetAccountId, "Cuenta de destino");
-			Long value = parseLong(amount, "Monto");
-			if (value <= 0) {
-				throw new InvalidInputException("El monto debe ser mayor que cero.");
-			}
+			Long value = parsePositiveLong(amount, "Monto");
 
 			SendMoneyCommand command = new SendMoneyCommand(
 					new AccountId(source),
@@ -91,18 +81,22 @@ class AccountWebController {
 			}
 			showBalance(model, source);
 		} catch (InvalidInputException e) {
-			error(model, e.getMessage());
-			showBalanceIfSourceIsKnown(model, sourceAccountId);
+			handleTransferError(model, e.getMessage(), sourceAccountId, true);
 		} catch (ConstraintViolationException e) {
-			error(model, "El monto debe ser mayor que cero.");
-			showBalanceIfSourceIsKnown(model, sourceAccountId);
+			handleTransferError(model, "El monto debe ser mayor que cero.", sourceAccountId, true);
 		} catch (ThresholdExceededException e) {
-			error(model, "El monto excede el límite máximo permitido por transferencia.");
-			showBalanceIfSourceIsKnown(model, sourceAccountId);
+			handleTransferError(model, "El monto excede el límite máximo permitido por transferencia.", sourceAccountId, true);
 		} catch (EntityNotFoundException e) {
-			error(model, "Una de las cuentas no existe.");
+			handleTransferError(model, "Una de las cuentas no existe.", sourceAccountId, false);
 		}
 		return VIEW;
+	}
+
+	private void handleTransferError(Model model, String message, String sourceAccountId, boolean refreshBalance) {
+		error(model, message);
+		if (refreshBalance) {
+			showBalanceIfSourceIsKnown(model, sourceAccountId);
+		}
 	}
 
 	private void showBalance(Model model, Long sourceAccountId) {
@@ -120,6 +114,14 @@ class AccountWebController {
 		} catch (NumberFormatException ignored) {
 			// No hay saldo que mostrar si la cuenta de origen no es numérica.
 		}
+	}
+
+	private static Long parsePositiveLong(String raw, String fieldName) {
+		Long value = parseLong(raw, fieldName);
+		if (value <= 0) {
+			throw new InvalidInputException("El monto debe ser mayor que cero.");
+		}
+		return value;
 	}
 
 	private static Long parseLong(String raw, String fieldName) {

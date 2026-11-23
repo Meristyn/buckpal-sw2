@@ -10,7 +10,10 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.boot.test.web.client.TestRestTemplate;
+import org.springframework.http.HttpEntity;
+import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpStatus;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.test.context.jdbc.Sql;
 
@@ -21,6 +24,7 @@ class SendMoneySystemTest {
     private TestRestTemplate restTemplate;
     @Autowired
     private LoadAccountPort loadAccountPort;
+
     @Test
     void transferenciaCompletaEntreDosCuentas() {
         // Arrange
@@ -29,11 +33,26 @@ class SendMoneySystemTest {
         LocalDateTime baseline = LocalDateTime.now();
         Money antesCuenta1 = loadAccountPort.loadAccount(cuenta1, baseline).calculateBalance();
         Money antesCuenta2 = loadAccountPort.loadAccount(cuenta2, baseline).calculateBalance();
+
+        HttpHeaders headers = new HttpHeaders();
+        headers.setContentType(MediaType.APPLICATION_JSON);
+        String body = """
+                {
+                  "sourceAccountId": 1,
+                  "targetAccountId": 2,
+                  "amount": 500
+                }
+                """;
+
         // Act
-        ResponseEntity<Void> response = restTemplate.postForEntity(
-                "/accounts/send/1/2/500", null, Void.class);
+        ResponseEntity<Boolean> response = restTemplate.postForEntity(
+                "/accounts/send",
+                new HttpEntity<>(body, headers),
+                Boolean.class);
+
         // Assert
         assertThat(response.getStatusCode()).isEqualTo(HttpStatus.OK);
+        assertThat(response.getBody()).isTrue();
 
         Money despuesCuenta1 = loadAccountPort.loadAccount(cuenta1, baseline).calculateBalance();
         Money despuesCuenta2 = loadAccountPort.loadAccount(cuenta2, baseline).calculateBalance();
