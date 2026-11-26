@@ -2,6 +2,7 @@ plugins {
     id 'jacoco'
     id 'org.springframework.boot' version '3.1.0'
     id 'io.spring.dependency-management' version '1.0.11.RELEASE'
+    id 'org.sonarqube' version '4.4.1.3373'
 }
 
 group = 'io.reflectoring.buckpal'
@@ -42,21 +43,39 @@ dependencies {
     testImplementation 'org.seleniumhq.selenium:selenium-java:4.52.0'
 
     runtimeOnly 'com.h2database:h2'
-
-    testImplementation 'io.github.bonigarcia:webdrivermanager:5.9.2'
-    testImplementation 'org.seleniumhq.selenium:selenium-java:4.52.0'
-    runtimeOnly 'com.h2database:h2'
 }
 
 test {
     useJUnitPlatform()
+    exclude 'io/reflectoring/buckpal/blackbox/**'
+    finalizedBy jacocoTestReport
+}
+
+tasks.register('blackboxTest', Test) {
+    description = 'Ejecuta las pruebas funcionales E2E de caja negra con Selenium.'
+    group = 'verification'
+    testClassesDirs = sourceSets.test.output.classesDirs
+    classpath = sourceSets.test.runtimeClasspath
+    useJUnitPlatform()
+    include 'io/reflectoring/buckpal/blackbox/**'
+    shouldRunAfter test
     finalizedBy jacocoTestReport
 }
 
 jacocoTestReport {
     dependsOn test
+    executionData.setFrom(fileTree(buildDir).include('/jacoco/*.exec'))
     reports {
         xml.required = true
         html.required = true
+    }
+}
+
+sonar {
+    properties {
+        property 'sonar.projectKey', 'buckpal-sw2'
+        property 'sonar.projectName', 'BuckPal SW2'
+        property 'sonar.sourceEncoding', 'UTF-8'
+        property 'sonar.coverage.jacoco.xmlReportPaths', "${buildDir}/reports/jacoco/test/jacocoTestReport.xml"
     }
 }

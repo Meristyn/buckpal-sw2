@@ -10,17 +10,18 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.boot.test.web.server.LocalServerPort;
 import org.springframework.test.context.ActiveProfiles;
 
-@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.DEFINED_PORT)
+@SpringBootTest(webEnvironment = SpringBootTest.WebEnvironment.RANDOM_PORT)
 @ActiveProfiles("demo")
 public class BaseSeleniumTest {
     protected WebDriver driver;
-    protected String baseUrl = "http://localhost:8080";
+    protected String baseUrl;
     @LocalServerPort
     protected int port;
 
 
     @BeforeEach
     public void setUp() {
+        baseUrl = "http://localhost:" + port;
         WebDriverManager.chromedriver().setup();
 
         ChromeOptions options = new ChromeOptions();
