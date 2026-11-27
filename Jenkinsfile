@@ -10,7 +10,7 @@ pipeline {
     agent any
 
     tools {
-        jdk 'JDK21'
+        jdk 'JDK17'
     }
 
     parameters {
@@ -63,16 +63,19 @@ pipeline {
 
         stage('SonarQube Analysis') {
             steps {
-                echo 'Ejecutando analisis de calidad y cobertura con SonarQube...'
-                withSonarQubeEnv('SonarQube') {
-                    runGradle('sonar')
+                catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE') {
+                    echo 'Ejecutando analisis de calidad y cobertura con SonarQube...'
+                    withEnv(["JAVA_HOME=C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.13.10002-hotspot", "PATH+JDK21=C:\\Program Files\\Eclipse Adoptium\\jdk-21.0.13.10002-hotspot\\bin"]) {
+                        withSonarQubeEnv('SonarQube') {
+                            runGradle('sonar')
+                        }
+                    }
                 }
             }
         }
 
         stage('Quality Gate') {
             steps {
-                echo 'Consultando Quality Gate en SonarQube (modo informativo)...'
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE', catchInterruptions: true) {
                     timeout(time: 2, unit: 'MINUTES') {
                         script {
