@@ -75,8 +75,10 @@ pipeline {
                 echo 'Consultando Quality Gate en SonarQube (modo informativo)...'
                 catchError(buildResult: 'SUCCESS', stageResult: 'UNSTABLE', catchInterruptions: true) {
                     timeout(time: 2, unit: 'MINUTES') {
-                        def qg = waitForQualityGate(abortPipeline: false)
-                        echo "Estado del Quality Gate de SonarQube: ${qg.status}"
+                        script {
+                            def qg = waitForQualityGate(abortPipeline: false)
+                            echo "Estado del Quality Gate de SonarQube: ${qg.status}"
+                        }
                     }
                 }
             }
